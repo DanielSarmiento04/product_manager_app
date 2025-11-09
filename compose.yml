@@ -1,115 +1,56 @@
-version: '3.8'
-
 services:
-  # PostgreSQL Database
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16
     container_name: igloolab_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres123}
-      POSTGRES_DB: ${DB_NAME:-igloolab_products}
-      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+      # Security: These should be moved to .env file
+      POSTGRES_USER: ${POSTGRES_USER:-igloolab_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme123}
+      POSTGRES_DB: ${POSTGRES_DB:-products_db}
+      # Additional security settings
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.utf8"
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
+      # Persist data
       - postgres_data:/var/lib/postgresql/data
+      # Initialize database with script
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-igloolab_products}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-igloolab_admin} -d ${POSTGRES_DB:-products_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
-
-  # Backend API (Node.js + TypeScript)
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-      target: ${NODE_ENV:-development}
-    container_name: igloolab_backend
-    restart: unless-stopped
-    environment:
-      NODE_ENV: ${NODE_ENV:-development}
-      PORT: ${BACKEND_PORT:-3000}
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USER: ${DB_USER:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgres123}
-      DB_NAME: ${DB_NAME:-igloolab_products}
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
-    ports:
-      - "${BACKEND_PORT:-3000}:3000"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-      - backend_logs:/app/logs
     networks:
-      - app-network
-    depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      - app_network
 
-  # Frontend (React + Vite)
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      target: ${NODE_ENV:-development}
-    container_name: igloolab_frontend
-    restart: unless-stopped
-    environment:
-      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/api}
-      NODE_ENV: ${NODE_ENV:-development}
-    ports:
-      - "${FRONTEND_PORT:-5173}:5173"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    networks:
-      - app-network
-    depends_on:
-      - backend
-    stdin_open: true
-    tty: true
-
-  # PgAdmin (Opcional - para gestión de base de datos)
+  # Optional: pgAdmin for database management
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: igloolab_pgadmin
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@igloolab.com}
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_LISTEN_PORT: 80
+      PGADMIN_CONFIG_CHECK_EMAIL_DELIVERABILITY: 'False'
     ports:
       - "${PGADMIN_PORT:-5050}:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
-    networks:
-      - app-network
     depends_on:
       - postgres
-    profiles:
-      - tools
+    networks:
+      - app_network
 
-networks:
-  app-network:
-    driver: bridge
-
+      
 volumes:
   postgres_data:
     driver: local
   pgadmin_data:
     driver: local
-  backend_logs:
-    driver: local
+
+networks:
+  app_network:
+    driver: bridge
