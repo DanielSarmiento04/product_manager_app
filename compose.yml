@@ -1,4 +1,18 @@
 services:
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: igloolab_frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-4200}:80"
+    # depends_on:
+    #   - backend
+    networks:
+      - app_network
+
   postgres:
     image: postgres:16
     container_name: igloolab_postgres
