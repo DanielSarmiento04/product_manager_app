@@ -2,21 +2,32 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ProductsModule } from './modules/products/products.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { validate } from './config/env.validation';
+import appConfig from './config/app.config';
+import databaseConfig from './config/database.config';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST,
-      port: +(process.env.DB_PORT || 5432),
-      username: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: process.env.NODE_ENV !== 'production',
+    // Load configuration with validation
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validate,
+      load: [appConfig, databaseConfig],
+      envFilePath: ['.env.local', '.env'],
+      cache: true,
+    }),
+    // Configure TypeORM with validated config
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const dbConfig = configService.get('database');
+        if (!dbConfig) {
+          throw new Error('Database configuration not found');
+        }
+        return dbConfig as ReturnType<typeof databaseConfig>;
+      },
     }),
     ProductsModule,
   ],
