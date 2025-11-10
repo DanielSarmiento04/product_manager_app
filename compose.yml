@@ -13,6 +13,25 @@ services:
     networks:
       - app_network
 
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: igloolab_backend
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: ${POSTGRES_PORT:-5432}
+      DB_USER: ${POSTGRES_USER:-igloolab_admin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme123}
+      DB_NAME: ${POSTGRES_DB:-products_db}
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+
   postgres:
     image: postgres:16
     container_name: igloolab_postgres
