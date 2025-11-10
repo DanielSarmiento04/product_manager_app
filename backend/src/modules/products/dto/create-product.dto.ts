@@ -5,6 +5,7 @@ import {
   Min,
   MaxLength,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateProductDto {
   @IsNotEmpty()
@@ -18,6 +19,7 @@ export class CreateProductDto {
 
   @IsNotEmpty()
   @IsNumber()
+  @Type(() => Number)
   @Min(0)
   price: number;
 }

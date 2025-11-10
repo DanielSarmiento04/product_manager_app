@@ -17,7 +17,21 @@ export class Product {
   @Column('text')
   description: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  // TypeORM returns DECIMAL/NUMERIC columns as strings by default because JS
+  // `number` can't safely represent arbitrary-precision decimals. For this
+  // application we convert to/from number at the ORM boundary using a simple
+  // transformer. For production-critical financial calculations prefer a
+  // dedicated decimal library (e.g. decimal.js) and keep values as strings.
+  @Column('decimal', {
+    precision: 10,
+    scale: 2,
+    transformer: {
+      to: (value: number) =>
+        value === null || value === undefined ? value : value.toFixed(2),
+      from: (value: string) =>
+        value === null || value === undefined ? value : parseFloat(value),
+    },
+  })
   price: number;
 
   @CreateDateColumn()
