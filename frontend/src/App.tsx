@@ -1,35 +1,43 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { ProductForm } from './components/ProductForm';
+import { ProductList } from './components/ProductList';
+import { useProducts } from './hooks/useProducts';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { products, loading, error, createProduct, deleteProduct } = useProducts();
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 2)}>
-          count is {count} +b
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="app">
+      <header className="app-header">
+        <h1>🏥 Gestión de Productos - IglooLab</h1>
+        <p>Sistema de gestión para productos farmacéuticos</p>
+      </header>
+
+      <main className="app-main">
+        {error && (
+          <div className="alert alert-error">
+            <strong>Error:</strong> {error}
+          </div>
+        )}
+
+        <section className="form-section">
+          <ProductForm onSubmit={createProduct} />
+        </section>
+
+        <section className="list-section">
+          <ProductList
+            products={products}
+            loading={loading}
+            onDelete={deleteProduct}
+          />
+        </section>
+      </main>
+
+      <footer className="app-footer">
+        <p>© 2024 IglooLab - Prueba Técnica Full Stack Developer</p>
+      </footer>
+    </div>
+  );
 }
 
-export default App
+export default App;
