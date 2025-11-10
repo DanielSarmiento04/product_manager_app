@@ -1,5 +1,7 @@
 # API de Gestión de Productos - Backend
 
+**Español** | [English](./README.md)
+
 ## Descripción General
 
 API RESTful para la gestión de productos farmacéuticos construida con NestJS, TypeORM y PostgreSQL. Esta es una implementación técnica para la evaluación de igloolab, demostrando patrones listos para producción, pruebas exhaustivas y adherencia a las mejores prácticas de NestJS.

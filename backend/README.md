@@ -1,5 +1,8 @@
 # Product Manager API - Backend
 
+[Español](./README_es.md) | **English**
+
+
 ## Overview
 
 RESTful API for managing pharmaceutical products built with NestJS, TypeORM, and PostgreSQL. This is a technical implementation for igloolab's evaluation, demonstrating production-ready patterns, comprehensive testing, and adherence to NestJS best practices.
